@@ -1,0 +1,10 @@
+  version: 3
+  tasks:
+    test:
+      dir: .
+      env:
+        BITBUCKET_USERNAME: "test"
+        BITBUCKET_APP_PASSWORD: "test"
+        BITBUCKET_DISPLAY_NAME: "Test"
+      cmds:
+      - go test ./...
