@@ -6,5 +6,6 @@
         BITBUCKET_USERNAME: "test"
         BITBUCKET_APP_PASSWORD: "test"
         BITBUCKET_DISPLAY_NAME: "Test"
+        BITBUCKET_WORKSPACE_SLUG: "test"
       cmds:
       - go test ./...

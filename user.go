@@ -4,21 +4,17 @@ import (
 	"encoding/json"
 )
 
-type Avatar struct {
-	Href string `json:"href"`
-}
-
-type Links struct {
-	Avatar Avatar `json:"avatar"`
+type UserLinks struct {
+	Avatar Link `json:"avatar"`
 }
 
 type User struct {
-	Username    string `json:"username"`
-	DisplayName string `json:"display_name"`
-	Uuid        string `json:"uuid"`
-	Links       Links  `json:"links"`
-	Type        string `json:"type"`
-	CreatedOn   string `json:"created_on"`
+	Username    string    `json:"username"`
+	DisplayName string    `json:"display_name"`
+	Uuid        string    `json:"uuid"`
+	Links       UserLinks `json:"links"`
+	Type        string    `json:"type"`
+	CreatedOn   string    `json:"created_on"`
 }
 
 type UserApiGroup struct {

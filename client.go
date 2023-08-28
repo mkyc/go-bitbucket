@@ -21,8 +21,9 @@ type Client struct {
 	apiBaseURL *url.URL
 	HttpClient *http.Client
 
-	User  userApiGroup
-	Debug bool
+	User       userApiGroup
+	Workspaces workspacesApiGroup
+	Debug      bool
 }
 
 type auth struct {
@@ -67,6 +68,10 @@ func (c *Client) do(req *http.Request) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	if resp.StatusCode == http.StatusNotFound {
+		return nil, errorNotFound
+	}
 	return io.ReadAll(resp.Body)
 }
 
@@ -92,6 +97,7 @@ func newClient(a *auth) *Client {
 		apiBaseURL: bitbucketUrl,
 	}
 	c.User = &UserApiGroup{c: c}
+	c.Workspaces = &WorkspacesApiGroup{c: c}
 
 	c.HttpClient = &http.Client{
 		Timeout: 5 * time.Second,

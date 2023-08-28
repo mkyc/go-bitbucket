@@ -24,7 +24,7 @@ func TestUserApiGroup_GetCurrentUser(t *testing.T) {
 		name    string
 		auth    basicAuth
 		want    want
-		wantErr assert.ErrorAssertionFunc
+		wantErr bool
 	}{
 		{
 			name: "correct user",
@@ -32,7 +32,7 @@ func TestUserApiGroup_GetCurrentUser(t *testing.T) {
 				username: os.Getenv("BITBUCKET_USERNAME"),
 				password: os.Getenv("BITBUCKET_APP_PASSWORD"),
 			},
-			wantErr: assert.NoError,
+			wantErr: false,
 			want: want{
 				username:    os.Getenv("BITBUCKET_USERNAME"),
 				type_:       "user",
@@ -46,7 +46,7 @@ func TestUserApiGroup_GetCurrentUser(t *testing.T) {
 				password: "incorrect",
 			},
 			want:    want{},
-			wantErr: assert.Error,
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
@@ -56,16 +56,18 @@ func TestUserApiGroup_GetCurrentUser(t *testing.T) {
 			c.Debug = true
 
 			g, err := c.User.GetCurrentUser()
-			spew.Dump(g)
-			if !tt.wantErr(t, err, fmt.Sprintf("GetCurrentUser()")) {
+			if tt.wantErr {
+				assert.Error(t, err, fmt.Sprintf("GetCurrentUser()"))
 				return
 			}
+			assert.NoError(t, err, fmt.Sprintf("GetCurrentUser()"))
+			spew.Dump(g)
 			got := want{
 				username:    g.Username,
 				type_:       g.Type,
 				displayName: g.DisplayName,
 			}
-			assert.Equalf(t, tt.want, got, "GetCurrentUser() Username")
+			assert.Equalf(t, tt.want, got, "GetCurrentUser()")
 		})
 	}
 }
