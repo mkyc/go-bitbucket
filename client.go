@@ -10,16 +10,19 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"os"
+	"strconv"
 	"time"
 )
 
 const (
 	DEFAULT_BITBUCKET_API_BASE_URL = "https://api.bitbucket.org/2.0"
 	DEFAULT_HEADER_ACCEPT          = "application/json"
+	DEFAULT_PAGE_LENGTH            = 100
 )
 
 type Client struct {
-	Auth       *auth
+	auth       *auth
+	pagination *pagination
 	apiBaseURL *url.URL
 	HttpClient *http.Client
 
@@ -33,6 +36,10 @@ type Client struct {
 type auth struct {
 	user, password string
 	bearerToken    string
+}
+
+type pagination struct {
+	PageLength int
 }
 
 func NewClientWithBearerToken(token string) *Client {
@@ -52,6 +59,7 @@ func (c *Client) newRequest(o RequestOptions) (*http.Request, error) {
 	}
 	c.addDefaultHeaders(req)
 	c.authenticateRequest(req)
+	c.addDefaultParams(req)
 	return req, nil
 }
 
@@ -84,10 +92,10 @@ func (c *Client) addDefaultHeaders(req *http.Request) {
 }
 
 func (c *Client) authenticateRequest(req *http.Request) {
-	if c.Auth.bearerToken != "" {
-		req.Header.Add("Authorization", "Bearer "+c.Auth.bearerToken)
-	} else if c.Auth.user != "" && c.Auth.password != "" {
-		req.SetBasicAuth(c.Auth.user, c.Auth.password)
+	if c.auth.bearerToken != "" {
+		req.Header.Add("Authorization", "Bearer "+c.auth.bearerToken)
+	} else if c.auth.user != "" && c.auth.password != "" {
+		req.SetBasicAuth(c.auth.user, c.auth.password)
 	}
 }
 
@@ -107,14 +115,23 @@ func (c *Client) logPrettyBody(bodyBytes []byte) {
 	}
 }
 
+func (c *Client) addDefaultParams(req *http.Request) {
+	q := req.URL.Query()
+	q.Set("pagelen", strconv.Itoa(c.pagination.PageLength))
+	req.URL.RawQuery = q.Encode()
+}
+
 func newClient(a *auth) *Client {
 	bitbucketUrl, err := setApiBaseUrl()
 	if err != nil {
 		log.Fatalf("invalid bitbucket url")
 	}
 	c := &Client{
-		Auth:       a,
+		auth:       a,
 		apiBaseURL: bitbucketUrl,
+		pagination: &pagination{
+			PageLength: DEFAULT_PAGE_LENGTH,
+		},
 	}
 	c.User = &UserApiGroup{c: c}
 	c.Workspaces = &WorkspacesApiGroup{c: c}

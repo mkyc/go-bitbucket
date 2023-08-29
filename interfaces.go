@@ -9,9 +9,10 @@ type workspacesApiGroup interface {
 }
 
 type deploymentsApiGroup interface {
-	GetEnvironment(workspace, repoSlug, uuid string) (*Environment, error)
+	GetEnvironment(workspace, repoSlug, environmentUuid string) (*Environment, error)
 }
 
 type pipelinesApiGroup interface {
-	GetVariableForWorkspace(workspace, uuid string) (*Variable, error)
+	GetVariableForWorkspace(workspace, variableUuid string) (*Variable, error)
+	ListVariablesForEnvironment(workspace, repoSlug, environmentUuid string) ([]Variable, error)
 }

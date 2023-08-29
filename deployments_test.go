@@ -9,9 +9,9 @@ import (
 
 func TestDeploymentsApiGroup_GetEnvironment(t *testing.T) {
 	type args struct {
-		workspace string
-		repoSlug  string
-		uuid      string
+		workspace       string
+		repoSlug        string
+		environmentUuid string
 	}
 	type basicAuth struct {
 		username string
@@ -35,9 +35,9 @@ func TestDeploymentsApiGroup_GetEnvironment(t *testing.T) {
 				password: os.Getenv("BITBUCKET_APP_PASSWORD"),
 			},
 			args: args{
-				workspace: os.Getenv("BITBUCKET_WORKSPACE_SLUG"),
-				repoSlug:  os.Getenv("BITBUCKET_REPO_SLUG"),
-				uuid:      os.Getenv("BITBUCKET_ENVIRONMENT_UUID"),
+				workspace:       os.Getenv("BITBUCKET_WORKSPACE_SLUG"),
+				repoSlug:        os.Getenv("BITBUCKET_REPO_SLUG"),
+				environmentUuid: os.Getenv("BITBUCKET_ENVIRONMENT_UUID"),
 			},
 			want: want{
 				type_: "deployment_environment",
@@ -52,9 +52,9 @@ func TestDeploymentsApiGroup_GetEnvironment(t *testing.T) {
 				password: "incorrect",
 			},
 			args: args{
-				workspace: os.Getenv("BITBUCKET_WORKSPACE_SLUG"),
-				repoSlug:  os.Getenv("BITBUCKET_REPO_SLUG"),
-				uuid:      os.Getenv("BITBUCKET_ENVIRONMENT_UUID"),
+				workspace:       os.Getenv("BITBUCKET_WORKSPACE_SLUG"),
+				repoSlug:        os.Getenv("BITBUCKET_REPO_SLUG"),
+				environmentUuid: os.Getenv("BITBUCKET_ENVIRONMENT_UUID"),
 			},
 			want:    want{},
 			wantErr: true,
@@ -66,9 +66,9 @@ func TestDeploymentsApiGroup_GetEnvironment(t *testing.T) {
 				password: os.Getenv("BITBUCKET_APP_PASSWORD"),
 			},
 			args: args{
-				workspace: os.Getenv("BITBUCKET_WORKSPACE_SLUG"),
-				repoSlug:  os.Getenv("BITBUCKET_REPO_SLUG"),
-				uuid:      "{0f0e5143-3edc-4b99-81a3-2866c3eee216}", //this is random uuid
+				workspace:       os.Getenv("BITBUCKET_WORKSPACE_SLUG"),
+				repoSlug:        os.Getenv("BITBUCKET_REPO_SLUG"),
+				environmentUuid: "{0f0e5143-3edc-4b99-81a3-2866c3eee216}", //this is random uuid
 			},
 			want:    want{},
 			wantErr: true,
@@ -79,7 +79,7 @@ func TestDeploymentsApiGroup_GetEnvironment(t *testing.T) {
 			c := NewClientWithBasicAuth(tt.auth.username, tt.auth.password)
 			c.Debug = true
 
-			g, err := c.Deployments.GetEnvironment(tt.args.workspace, tt.args.repoSlug, tt.args.uuid)
+			g, err := c.Deployments.GetEnvironment(tt.args.workspace, tt.args.repoSlug, tt.args.environmentUuid)
 			if tt.wantErr {
 				assert.Error(t, err)
 				return

@@ -5,7 +5,7 @@ import (
 )
 
 type Environment struct {
-	Type string `json:"type"`
+	Object
 	Uuid string `json:"uuid"`
 	Name string `json:"name"`
 }
@@ -14,8 +14,8 @@ type DeploymentsApiGroup struct {
 	c *Client
 }
 
-func (d *DeploymentsApiGroup) GetEnvironment(workspace, repoSlug, uuid string) (*Environment, error) {
-	o := RequestOptions{Method: "GET", Path: d.c.requestPath("/repositories/%s/%s/environments/%s", workspace, repoSlug, uuid)}
+func (d *DeploymentsApiGroup) GetEnvironment(workspace, repoSlug, environmentUuid string) (*Environment, error) {
+	o := RequestOptions{Method: "GET", Path: d.c.requestPath("/repositories/%s/%s/environments/%s", workspace, repoSlug, environmentUuid)}
 	req, err := d.c.newRequest(o)
 	if err != nil {
 		return nil, err

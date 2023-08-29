@@ -26,7 +26,7 @@ func TestNewClientWithBearerToken(t *testing.T) {
 
 			spew.Dump(got)
 
-			a.Equal(tt.want, got.Auth.bearerToken)
+			a.Equal(tt.want, got.auth.bearerToken)
 		})
 	}
 }

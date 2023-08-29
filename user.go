@@ -9,11 +9,11 @@ type UserLinks struct {
 }
 
 type User struct {
+	Object
 	Username    string    `json:"username"`
 	DisplayName string    `json:"display_name"`
 	Uuid        string    `json:"uuid"`
 	Links       UserLinks `json:"links"`
-	Type        string    `json:"type"`
 	CreatedOn   string    `json:"created_on"`
 }
 

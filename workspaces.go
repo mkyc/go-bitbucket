@@ -11,9 +11,9 @@ type WorkspaceLinks struct {
 }
 
 type Workspace struct {
+	Object
 	Name      string         `json:"name"`
 	Slug      string         `json:"slug"`
-	Type      string         `json:"type"`
 	Uuid      string         `json:"uuid"`
 	IsPrivate bool           `json:"is_private"`
 	CreatedOn string         `json:"created_on"`
