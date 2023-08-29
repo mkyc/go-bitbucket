@@ -1,11 +1,19 @@
-  version: 3
-  tasks:
-    test:
-      dir: .
-      env:
-        BITBUCKET_USERNAME: "test"
-        BITBUCKET_APP_PASSWORD: "test"
-        BITBUCKET_DISPLAY_NAME: "Test"
-        BITBUCKET_WORKSPACE_SLUG: "test"
-      cmds:
-      - go test ./...
+version: 3
+tasks:
+  test:
+    dir: .
+    env:
+      BITBUCKET_APP_PASSWORD: "test"
+      BITBUCKET_DISPLAY_NAME: "test"
+      BITBUCKET_ENVIRONMENT_NAME: "test"
+      BITBUCKET_ENVIRONMENT_UUID: "test"
+      BITBUCKET_REPO_SLUG: "test"
+      BITBUCKET_USERNAME: "test"
+      BITBUCKET_WORKSPACE_INSECURE_VARIABLE_KEY: "test"
+      BITBUCKET_WORKSPACE_INSECURE_VARIABLE_UUID: "test"
+      BITBUCKET_WORKSPACE_INSECURE_VARIABLE_VALUE: "test"
+      BITBUCKET_WORKSPACE_SECURE_VARIABLE_KEY: "test"
+      BITBUCKET_WORKSPACE_SECURE_VARIABLE_UUID: "test"
+      BITBUCKET_WORKSPACE_SLUG: "test"
+    cmds:
+    - go test ./...

@@ -26,6 +26,7 @@ type Client struct {
 	User        userApiGroup
 	Workspaces  workspacesApiGroup
 	Deployments deploymentsApiGroup
+	Pipelines   pipelinesApiGroup
 	Debug       bool
 }
 
@@ -118,6 +119,7 @@ func newClient(a *auth) *Client {
 	c.User = &UserApiGroup{c: c}
 	c.Workspaces = &WorkspacesApiGroup{c: c}
 	c.Deployments = &DeploymentsApiGroup{c: c}
+	c.Pipelines = &PipelinesApiGroup{c: c}
 
 	c.HttpClient = &http.Client{
 		Timeout: 5 * time.Second,
