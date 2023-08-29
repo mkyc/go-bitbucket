@@ -13,6 +13,7 @@ type Variable struct {
 	Value   string `json:"value"`
 	Secured bool   `json:"secured"`
 }
+
 type VariablesPage struct {
 	Page
 	Values []Variable `json:"values"`
@@ -26,19 +27,8 @@ func (p *PipelinesApiGroup) GetVariableForWorkspace(workspace, variableUuid stri
 		Method: "GET",
 		Path:   p.c.requestPath("/workspaces/%s/pipelines-config/variables/%s", workspace, variableUuid),
 	}
-	req, err := p.c.newRequest(o)
-	if err != nil {
-		return nil, err
-	}
-	bodyBytes, err := p.c.do(req)
-	if err != nil {
-		return nil, err
-	}
-	if p.c.Debug {
-		p.c.logPrettyBody(bodyBytes)
-	}
 	var variable Variable
-	err = json.Unmarshal(bodyBytes, &variable)
+	err := p.c.execute(o, &variable)
 	return &variable, err
 }
 

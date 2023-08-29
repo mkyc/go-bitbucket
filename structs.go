@@ -7,8 +7,16 @@ type RequestOptions struct {
 type Link struct {
 	Href string `json:"href"`
 }
+
+type Typer interface {
+	GetType() string
+}
 type Object struct {
 	Type string `json:"type"`
+}
+
+func (o Object) GetType() string {
+	return o.Type
 }
 
 type Page struct {

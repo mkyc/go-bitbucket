@@ -1,9 +1,5 @@
 package bitbucket
 
-import (
-	"encoding/json"
-)
-
 type UserLinks struct {
 	Avatar Link `json:"avatar"`
 }
@@ -22,19 +18,11 @@ type UserApiGroup struct {
 }
 
 func (u *UserApiGroup) GetCurrentUser() (*User, error) {
-	o := RequestOptions{Method: "GET", Path: u.c.requestPath("/user")}
-	req, err := u.c.newRequest(o)
-	if err != nil {
-		return nil, err
-	}
-	bodyBytes, err := u.c.do(req)
-	if err != nil {
-		return nil, err
-	}
-	if u.c.Debug {
-		u.c.logPrettyBody(bodyBytes)
+	o := RequestOptions{
+		Method: "GET",
+		Path:   u.c.requestPath("/user"),
 	}
 	var user User
-	err = json.Unmarshal(bodyBytes, &user)
+	err := u.c.execute(o, &user)
 	return &user, err
 }

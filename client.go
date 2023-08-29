@@ -121,6 +121,21 @@ func (c *Client) addDefaultParams(req *http.Request) {
 	req.URL.RawQuery = q.Encode()
 }
 
+func (c *Client) execute(o RequestOptions, target Typer) error {
+	req, err := c.newRequest(o)
+	if err != nil {
+		return err
+	}
+	bodyBytes, err := c.do(req)
+	if err != nil {
+		return err
+	}
+	if c.Debug {
+		c.logPrettyBody(bodyBytes)
+	}
+	return json.Unmarshal(bodyBytes, target)
+}
+
 func newClient(a *auth) *Client {
 	bitbucketUrl, err := setApiBaseUrl()
 	if err != nil {
