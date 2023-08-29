@@ -1,7 +1,6 @@
 package bitbucket
 
 import (
-	"fmt"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/stretchr/testify/assert"
 	"os"
@@ -68,16 +67,16 @@ func TestWorkspacesApiGroup_GetWorkspace(t *testing.T) {
 
 			g, err := c.Workspaces.GetWorkspace(tt.workspace)
 			if tt.wantErr {
-				assert.Error(t, err, fmt.Sprintf("GetWorkspace(%v)", tt.workspace))
+				assert.Error(t, err)
 				return
 			}
-			assert.NoError(t, err, fmt.Sprintf("GetWorkspace(%v)", tt.workspace))
+			assert.NoError(t, err)
 			spew.Dump(g)
 			got := want{
 				type_: g.Type,
 				slug:  g.Slug,
 			}
-			assert.Equalf(t, tt.want, got, "GetWorkspace(%v)", tt.workspace)
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }

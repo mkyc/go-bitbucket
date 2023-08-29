@@ -22,16 +22,19 @@ type UserApiGroup struct {
 }
 
 func (u *UserApiGroup) GetCurrentUser() (*User, error) {
-	o := RequestOptions{Method: "GET", Path: "/user"}
-	req, err := u.c.prepareRequest(o)
+	o := RequestOptions{Method: "GET", Path: u.c.requestPath("/user")}
+	req, err := u.c.newRequest(o)
 	if err != nil {
 		return nil, err
 	}
-	bytes, err := u.c.do(req)
+	bodyBytes, err := u.c.do(req)
 	if err != nil {
 		return nil, err
+	}
+	if u.c.Debug {
+		u.c.logPrettyBody(bodyBytes)
 	}
 	var user User
-	err = json.Unmarshal(bytes, &user)
+	err = json.Unmarshal(bodyBytes, &user)
 	return &user, err
 }

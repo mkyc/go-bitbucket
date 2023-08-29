@@ -7,3 +7,7 @@ type userApiGroup interface {
 type workspacesApiGroup interface {
 	GetWorkspace(name string) (*Workspace, error)
 }
+
+type deploymentsApiGroup interface {
+	GetEnvironment(workspace, repoSlug, uuid string) (*Environment, error)
+}

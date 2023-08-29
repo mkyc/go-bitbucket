@@ -1,6 +1,8 @@
 package bitbucket
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -21,9 +23,10 @@ type Client struct {
 	apiBaseURL *url.URL
 	HttpClient *http.Client
 
-	User       userApiGroup
-	Workspaces workspacesApiGroup
-	Debug      bool
+	User        userApiGroup
+	Workspaces  workspacesApiGroup
+	Deployments deploymentsApiGroup
+	Debug       bool
 }
 
 type auth struct {
@@ -41,7 +44,7 @@ func NewClientWithBasicAuth(user, password string) *Client {
 	return newClient(a)
 }
 
-func (c *Client) prepareRequest(o RequestOptions) (*http.Request, error) {
+func (c *Client) newRequest(o RequestOptions) (*http.Request, error) {
 	req, err := http.NewRequest(o.Method, c.apiBaseURL.String()+o.Path, nil)
 	if err != nil {
 		return nil, err
@@ -87,6 +90,22 @@ func (c *Client) authenticateRequest(req *http.Request) {
 	}
 }
 
+func (c *Client) requestPath(template string, args ...interface{}) string {
+	return fmt.Sprintf(template, args...)
+}
+
+func (c *Client) logPrettyBody(bodyBytes []byte) {
+	var pretty bytes.Buffer
+	err := json.Indent(&pretty, bodyBytes, "", "  ")
+	if err != nil {
+		log.Printf("JSON parse error: %s", err)
+		// If it's not JSON, just print the original body text
+		log.Println(string(bodyBytes))
+	} else {
+		log.Println(string(pretty.Bytes()))
+	}
+}
+
 func newClient(a *auth) *Client {
 	bitbucketUrl, err := setApiBaseUrl()
 	if err != nil {
@@ -98,6 +117,7 @@ func newClient(a *auth) *Client {
 	}
 	c.User = &UserApiGroup{c: c}
 	c.Workspaces = &WorkspacesApiGroup{c: c}
+	c.Deployments = &DeploymentsApiGroup{c: c}
 
 	c.HttpClient = &http.Client{
 		Timeout: 5 * time.Second,

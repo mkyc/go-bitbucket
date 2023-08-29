@@ -25,16 +25,19 @@ type WorkspacesApiGroup struct {
 }
 
 func (w *WorkspacesApiGroup) GetWorkspace(name string) (*Workspace, error) {
-	o := RequestOptions{Method: "GET", Path: "/workspaces/" + name}
-	req, err := w.c.prepareRequest(o)
+	o := RequestOptions{Method: "GET", Path: w.c.requestPath("/workspaces/%s", name)}
+	req, err := w.c.newRequest(o)
 	if err != nil {
 		return nil, err
 	}
-	bytes, err := w.c.do(req)
+	bodyBytes, err := w.c.do(req)
 	if err != nil {
 		return nil, err
+	}
+	if w.c.Debug {
+		w.c.logPrettyBody(bodyBytes)
 	}
 	var workspace Workspace
-	err = json.Unmarshal(bytes, &workspace)
+	err = json.Unmarshal(bodyBytes, &workspace)
 	return &workspace, err
 }

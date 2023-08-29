@@ -1,7 +1,6 @@
 package bitbucket
 
 import (
-	"fmt"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/stretchr/testify/assert"
 	"os"
@@ -57,17 +56,17 @@ func TestUserApiGroup_GetCurrentUser(t *testing.T) {
 
 			g, err := c.User.GetCurrentUser()
 			if tt.wantErr {
-				assert.Error(t, err, fmt.Sprintf("GetCurrentUser()"))
+				assert.Error(t, err)
 				return
 			}
-			assert.NoError(t, err, fmt.Sprintf("GetCurrentUser()"))
+			assert.NoError(t, err)
 			spew.Dump(g)
 			got := want{
 				username:    g.Username,
 				type_:       g.Type,
 				displayName: g.DisplayName,
 			}
-			assert.Equalf(t, tt.want, got, "GetCurrentUser()")
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }
