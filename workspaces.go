@@ -26,6 +26,6 @@ func (w *WorkspacesApiGroup) GetWorkspace(name string) (*Workspace, error) {
 		Path:   w.c.requestPath("/workspaces/%s", name),
 	}
 	var workspace Workspace
-	err := w.c.execute(o, &workspace)
+	err := w.c.execute(&o, &workspace)
 	return &workspace, err
 }

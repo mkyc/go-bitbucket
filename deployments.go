@@ -16,6 +16,6 @@ func (d *DeploymentsApiGroup) GetEnvironment(workspace, repoSlug, environmentUui
 		Path:   d.c.requestPath("/repositories/%s/%s/environments/%s", workspace, repoSlug, environmentUuid),
 	}
 	var environment Environment
-	err := d.c.execute(o, &environment)
+	err := d.c.execute(&o, &environment)
 	return &environment, err
 }

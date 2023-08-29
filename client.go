@@ -52,7 +52,7 @@ func NewClientWithBasicAuth(user, password string) *Client {
 	return newClient(a)
 }
 
-func (c *Client) newRequest(o RequestOptions) (*http.Request, error) {
+func (c *Client) newRequest(o *RequestOptions) (*http.Request, error) {
 	req, err := http.NewRequest(o.Method, c.apiBaseURL.String()+o.Path, nil)
 	if err != nil {
 		return nil, err
@@ -60,6 +60,11 @@ func (c *Client) newRequest(o RequestOptions) (*http.Request, error) {
 	c.addDefaultHeaders(req)
 	c.authenticateRequest(req)
 	c.addDefaultParams(req)
+	if o.IsPageable {
+		q := req.URL.Query()
+		q.Set("page", strconv.Itoa(o.CurrentPage))
+		req.URL.RawQuery = q.Encode()
+	}
 	return req, nil
 }
 
@@ -121,7 +126,24 @@ func (c *Client) addDefaultParams(req *http.Request) {
 	req.URL.RawQuery = q.Encode()
 }
 
-func (c *Client) execute(o RequestOptions, target Typer) error {
+func (c *Client) executePageable(o *RequestOptions, targets *[]Typer) error {
+	hasNextPage := true
+	for hasNextPage {
+		page := &Page{}
+		err := c.executePageablePage(o, page)
+		if err != nil {
+			return err
+		}
+		*targets = append(*targets, page.GetValues()...)
+		if o.CurrentPage*c.pagination.PageLength >= page.GetSize() {
+			hasNextPage = false
+		}
+		o.CurrentPage++
+	}
+	return nil
+}
+
+func (c *Client) executeGeneric(o *RequestOptions, target interface{}) error {
 	req, err := c.newRequest(o)
 	if err != nil {
 		return err
@@ -134,6 +156,14 @@ func (c *Client) execute(o RequestOptions, target Typer) error {
 		c.logPrettyBody(bodyBytes)
 	}
 	return json.Unmarshal(bodyBytes, target)
+}
+
+func (c *Client) execute(o *RequestOptions, target Typer) error {
+	return c.executeGeneric(o, target)
+}
+
+func (c *Client) executePageablePage(o *RequestOptions, target Pager) error {
+	return c.executeGeneric(o, target)
 }
 
 func newClient(a *auth) *Client {

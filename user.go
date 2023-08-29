@@ -23,6 +23,6 @@ func (u *UserApiGroup) GetCurrentUser() (*User, error) {
 		Path:   u.c.requestPath("/user"),
 	}
 	var user User
-	err := u.c.execute(o, &user)
+	err := u.c.execute(&o, &user)
 	return &user, err
 }
