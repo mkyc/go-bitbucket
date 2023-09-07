@@ -7,6 +7,7 @@ type RequestOptions struct {
 	Path        string
 	IsPageable  bool
 	CurrentPage int
+	Data        interface{}
 }
 type Link struct {
 	Href string `json:"href"`

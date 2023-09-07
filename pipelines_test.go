@@ -1,10 +1,12 @@
 package bitbucket
 
 import (
+	"fmt"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
+	"time"
 )
 
 func TestPipelinesApiGroup_GetVariableForWorkspace(t *testing.T) {
@@ -271,6 +273,142 @@ func TestPipelinesApiGroup_ListVariablesForEnvironment(t *testing.T) {
 				})
 			}
 			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestPipelinesApiGroup_CreateVariableForEnvironment(t *testing.T) {
+	currentTime := time.Now()
+	formattedTime := currentTime.Format("060102_1504")
+
+	type args struct {
+		workspace       string
+		repoSlug        string
+		environmentUuid string
+		variable        Variable
+	}
+	type basicAuth struct {
+		username string
+		password string
+	}
+	type want struct {
+		type_   string
+		key     string
+		value   string
+		secured bool
+	}
+	tests := []struct {
+		name    string
+		auth    basicAuth
+		args    args
+		want    want
+		wantErr bool
+	}{
+		{
+			name: "correct variable insecure",
+			auth: basicAuth{
+				username: os.Getenv("BITBUCKET_USERNAME"),
+				password: os.Getenv("BITBUCKET_APP_PASSWORD"),
+			},
+			args: args{
+				workspace:       os.Getenv("BITBUCKET_WORKSPACE_SLUG"),
+				repoSlug:        os.Getenv("BITBUCKET_REPO_SLUG"),
+				environmentUuid: os.Getenv("BITBUCKET_ENVIRONMENT_UUID_CREATE_VARIABLES"),
+				variable: Variable{
+					Key:     fmt.Sprintf("variable_1_key_%s", formattedTime),
+					Value:   "variable_1_value",
+					Secured: false,
+				},
+			},
+			want: want{
+				key:     fmt.Sprintf("variable_1_key_%s", formattedTime),
+				value:   "variable_1_value",
+				secured: false,
+			},
+			wantErr: false,
+		},
+		{
+			name: "correct variable secure",
+			auth: basicAuth{
+				username: os.Getenv("BITBUCKET_USERNAME"),
+				password: os.Getenv("BITBUCKET_APP_PASSWORD"),
+			},
+			args: args{
+				workspace:       os.Getenv("BITBUCKET_WORKSPACE_SLUG"),
+				repoSlug:        os.Getenv("BITBUCKET_REPO_SLUG"),
+				environmentUuid: os.Getenv("BITBUCKET_ENVIRONMENT_UUID_CREATE_VARIABLES"),
+				variable: Variable{
+					Key:     fmt.Sprintf("variable_2_key_%s", formattedTime),
+					Value:   "variable_2_value",
+					Secured: true,
+				},
+			},
+			want: want{
+				key:     fmt.Sprintf("variable_2_key_%s", formattedTime),
+				value:   "",
+				secured: true,
+			},
+			wantErr: false,
+		},
+		{
+			name: "incorrect credentials",
+			auth: basicAuth{
+				username: "incorrect",
+				password: "incorrect",
+			},
+			args: args{
+				workspace:       os.Getenv("BITBUCKET_WORKSPACE_SLUG"),
+				repoSlug:        os.Getenv("BITBUCKET_REPO_SLUG"),
+				environmentUuid: os.Getenv("BITBUCKET_ENVIRONMENT_UUID_CREATE_VARIABLES"),
+				variable: Variable{
+					Key:     fmt.Sprintf("variable_3_key_%s", formattedTime),
+					Value:   "variable_3_value",
+					Secured: false,
+				},
+			},
+			want:    want{},
+			wantErr: true,
+		},
+		//unfortunately, BitBucket is allowing to create variables for non-existing environments
+		//{
+		//	name: "incorrect environment uuid",
+		//	auth: basicAuth{
+		//		username: os.Getenv("BITBUCKET_USERNAME"),
+		//		password: os.Getenv("BITBUCKET_APP_PASSWORD"),
+		//	},
+		//	args: args{
+		//		workspace:       os.Getenv("BITBUCKET_WORKSPACE_SLUG"),
+		//		repoSlug:        os.Getenv("BITBUCKET_REPO_SLUG"),
+		//		environmentUuid: "{51f2d4f7-ba7b-4f03-8e27-1b962f39f627}", // this is random uuid
+		//		variable: Variable{
+		//			Key:     fmt.Sprintf("variable_4_key_%s", formattedTime),
+		//			Value:   "variable_4_value",
+		//			Secured: false,
+		//		},
+		//	},
+		//	want:    want{},
+		//	wantErr: true,
+		//},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c := NewClientWithBasicAuth(tt.auth.username, tt.auth.password)
+			c.Debug = true
+
+			g, err := c.Pipelines.CreateVariableForEnvironment(tt.args.workspace, tt.args.repoSlug, tt.args.environmentUuid, tt.args.variable)
+			if tt.wantErr {
+				assert.Error(t, err)
+				return
+			}
+			assert.NoError(t, err)
+			spew.Dump(g)
+			got := want{
+				key:     g.Key,
+				secured: g.Secured,
+				value:   g.Value,
+			}
+			assert.Equal(t, tt.want, got)
+			assert.NotEmpty(t, g.Uuid)
 		})
 	}
 }

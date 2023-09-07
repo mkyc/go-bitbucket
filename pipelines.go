@@ -2,7 +2,7 @@ package bitbucket
 
 type Variable struct {
 	Object
-	Uuid    string `json:"uuid"`
+	Uuid    string `json:"uuid,omitempty"`
 	Key     string `json:"key"`
 	Value   string `json:"value"`
 	Secured bool   `json:"secured"`
@@ -40,4 +40,16 @@ func (p *PipelinesApiGroup) ListVariablesForEnvironment(workspace, repoSlug, env
 	}
 
 	return variables, err
+}
+
+func (p *PipelinesApiGroup) CreateVariableForEnvironment(workspace, repoSlug, environmentUuid string, variable Variable) (*Variable, error) {
+	o := RequestOptions{
+		Method: "POST",
+		Path:   p.c.requestPath("/repositories/%s/%s/deployments_config/environments/%s/variables", workspace, repoSlug, environmentUuid),
+		Data:   variable,
+	}
+	var result Variable
+
+	err := p.c.execute(&o, &result)
+	return &result, err
 }

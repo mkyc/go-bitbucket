@@ -15,4 +15,5 @@ type deploymentsApiGroup interface {
 type pipelinesApiGroup interface {
 	GetVariableForWorkspace(workspace, variableUuid string) (*Variable, error)
 	ListVariablesForEnvironment(workspace, repoSlug, environmentUuid string) ([]Variable, error)
+	CreateVariableForEnvironment(workspace, repoSlug, environmentUuid string, variable Variable) (*Variable, error)
 }

@@ -60,6 +60,7 @@ func (c *Client) newRequest(o *RequestOptions) (*http.Request, error) {
 	c.addDefaultHeaders(req)
 	c.authenticateRequest(req)
 	c.addDefaultParams(req)
+	c.addBody(req, o)
 	if o.IsPageable {
 		q := req.URL.Query()
 		q.Set("page", strconv.Itoa(o.CurrentPage))
@@ -164,6 +165,15 @@ func (c *Client) execute(o *RequestOptions, target Typer) error {
 
 func (c *Client) executePageablePage(o *RequestOptions, target Pager) error {
 	return c.executeGeneric(o, target)
+}
+
+func (c *Client) addBody(req *http.Request, o *RequestOptions) {
+	if o.Data != nil {
+		bodyBytes, _ := json.Marshal(o.Data)
+		req.Body = io.NopCloser(bytes.NewReader(bodyBytes))
+		req.ContentLength = int64(len(bodyBytes))
+		req.Header.Set("Content-Type", "application/json")
+	}
 }
 
 func newClient(a *auth) *Client {
