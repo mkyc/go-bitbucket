@@ -129,24 +129,7 @@ func (c *Client) addDefaultParams(req *http.Request) {
 	req.URL.RawQuery = q.Encode()
 }
 
-func (c *Client) executePageable(o *RequestOptions, targets *[]Typer) error {
-	hasNextPage := true
-	for hasNextPage {
-		page := &Page{}
-		err := c.executePageablePage(o, page)
-		if err != nil {
-			return err
-		}
-		*targets = append(*targets, page.GetValues()...)
-		if o.CurrentPage*c.pagination.PageLength >= page.GetSize() {
-			hasNextPage = false
-		}
-		o.CurrentPage++
-	}
-	return nil
-}
-
-func (c *Client) executeGeneric(o *RequestOptions, target interface{}) error {
+func (c *Client) execute(o *RequestOptions, target interface{}) error {
 	req, err := c.newRequest(o)
 	if err != nil {
 		return err
@@ -158,15 +141,8 @@ func (c *Client) executeGeneric(o *RequestOptions, target interface{}) error {
 	if c.Debug {
 		c.logPrettyBody(bodyBytes)
 	}
+
 	return json.Unmarshal(bodyBytes, target)
-}
-
-func (c *Client) execute(o *RequestOptions, target Typer) error {
-	return c.executeGeneric(o, target)
-}
-
-func (c *Client) executePageablePage(o *RequestOptions, target Pager) error {
-	return c.executeGeneric(o, target)
 }
 
 func (c *Client) addBody(req *http.Request, o *RequestOptions) {

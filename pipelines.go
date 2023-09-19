@@ -8,6 +8,23 @@ type Variable struct {
 	Secured bool   `json:"secured"`
 }
 
+type VariablesPage struct {
+	Page
+	Values []Variable `json:"values"`
+}
+
+func (p *VariablesPage) GetValues() []Typer {
+	var t []Typer
+	for _, v := range p.Values {
+		t = append(t, v)
+	}
+	return t
+}
+
+func (p *VariablesPage) GetSize() int {
+	return p.Size
+}
+
 type PipelinesApiGroup struct {
 	c *Client
 }
@@ -27,19 +44,34 @@ func (p *PipelinesApiGroup) ListVariablesForEnvironment(workspace, repoSlug, env
 		Method:      "GET",
 		Path:        p.c.requestPath("/repositories/%s/%s/deployments_config/environments/%s/variables", workspace, repoSlug, environmentUuid),
 		IsPageable:  true,
+		HasNextPage: true,
 		CurrentPage: 1,
 	}
-	var typers []Typer
-	err := p.c.executePageable(&o, &typers)
-	if err != nil {
-		return nil, err
-	}
-	var variables []Variable
-	for _, typer := range typers {
-		variables = append(variables, typer.(Variable))
+
+	var pages []VariablesPage
+	for o.HasNextPage {
+		var page VariablesPage
+		err := p.c.execute(&o, &page)
+		if err != nil {
+			return nil, err
+		}
+		pages = append(pages, page)
+
+		if o.CurrentPage*p.c.pagination.PageLength >= page.GetSize() {
+			o.HasNextPage = false
+		}
+		o.CurrentPage++
 	}
 
-	return variables, err
+	var variables []Variable
+
+	for _, page := range pages {
+		for _, v := range page.Values {
+			variables = append(variables, v)
+		}
+	}
+
+	return variables, nil
 }
 
 func (p *PipelinesApiGroup) CreateVariableForEnvironment(workspace, repoSlug, environmentUuid string, variable Variable) (*Variable, error) {

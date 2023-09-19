@@ -1,12 +1,11 @@
 package bitbucket
 
-import "encoding/json"
-
 type RequestOptions struct {
 	Method      string
 	Path        string
 	IsPageable  bool
 	CurrentPage int
+	HasNextPage bool
 	Data        interface{}
 }
 type Link struct {
@@ -30,40 +29,9 @@ type Pager interface {
 }
 
 type Page struct {
-	Size     int     `json:"size"`
-	Page     int     `json:"page"`
-	PageLen  int     `json:"pagelen"`
-	Next     string  `json:"next"`
-	Previous string  `json:"previous"`
-	Values   []Typer `json:"values"`
-}
-
-func (p *Page) GetValues() []Typer {
-	return p.Values
-}
-
-func (p *Page) GetSize() int {
-	return p.Size
-}
-
-func (p *Page) UnmarshalJSON(data []byte) error {
-	type Alias Page
-	aux := &struct {
-		Values []json.RawMessage `json:"values"`
-		*Alias
-	}{
-		Alias: (*Alias)(p),
-	}
-	if err := json.Unmarshal(data, &aux); err != nil {
-		return err
-	}
-
-	for _, value := range aux.Values {
-		var v Variable
-		if err := json.Unmarshal(value, &v); err != nil {
-			return err
-		}
-		p.Values = append(p.Values, v)
-	}
-	return nil
+	Size     int    `json:"size"`
+	Page     int    `json:"page"`
+	PageLen  int    `json:"pagelen"`
+	Next     string `json:"next"`
+	Previous string `json:"previous"`
 }

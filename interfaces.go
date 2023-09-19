@@ -9,6 +9,11 @@ type workspacesApiGroup interface {
 }
 
 type deploymentsApiGroup interface {
+	// ListEnvironments is described at:
+	// https://developer.atlassian.com/cloud/bitbucket/rest/api-group-deployments/#api-repositories-workspace-repo-slug-environments-get
+	ListEnvironments(workspace, repoSlug string) ([]Environment, error)
+	// GetEnvironment is described at:
+	// https://developer.atlassian.com/cloud/bitbucket/rest/api-group-deployments/#api-repositories-workspace-repo-slug-environments-environment-uuid-get
 	GetEnvironment(workspace, repoSlug, environmentUuid string) (*Environment, error)
 }
 
