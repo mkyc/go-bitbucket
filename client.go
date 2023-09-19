@@ -15,9 +15,11 @@ import (
 )
 
 const (
-	DEFAULT_BITBUCKET_API_BASE_URL = "https://api.bitbucket.org/2.0"
-	DEFAULT_HEADER_ACCEPT          = "application/json"
-	DEFAULT_PAGE_LENGTH            = 100
+	DefaultBitbucketApiBaseUrl = "https://api.bitbucket.org/2.0"
+	DefaultHeaderAccept        = "application/json"
+	// DefaultPageLength is the default page length for paginated requests. More details here:
+	// https://developer.atlassian.com/cloud/bitbucket/rest/intro/#pagination
+	DefaultPageLength = 100
 )
 
 type Client struct {
@@ -94,7 +96,7 @@ func (c *Client) do(req *http.Request) ([]byte, error) {
 }
 
 func (c *Client) addDefaultHeaders(req *http.Request) {
-	req.Header.Add("Accept", DEFAULT_HEADER_ACCEPT)
+	req.Header.Add("Accept", DefaultHeaderAccept)
 }
 
 func (c *Client) authenticateRequest(req *http.Request) {
@@ -185,7 +187,7 @@ func newClient(a *auth) *Client {
 		auth:       a,
 		apiBaseURL: bitbucketUrl,
 		pagination: &pagination{
-			PageLength: DEFAULT_PAGE_LENGTH,
+			PageLength: DefaultPageLength,
 		},
 	}
 	c.User = &UserApiGroup{c: c}
@@ -202,7 +204,7 @@ func newClient(a *auth) *Client {
 func setApiBaseUrl() (*url.URL, error) {
 	e := os.Getenv("BITBUCKET_API_BASE_URL")
 	if e == "" {
-		e = DEFAULT_BITBUCKET_API_BASE_URL
+		e = DefaultBitbucketApiBaseUrl
 	}
 
 	return url.Parse(e)

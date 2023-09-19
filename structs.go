@@ -32,7 +32,7 @@ type Pager interface {
 type Page struct {
 	Size     int     `json:"size"`
 	Page     int     `json:"page"`
-	Pagelen  int     `json:"pagelen"`
+	PageLen  int     `json:"pagelen"`
 	Next     string  `json:"next"`
 	Previous string  `json:"previous"`
 	Values   []Typer `json:"values"`
