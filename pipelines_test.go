@@ -412,3 +412,225 @@ func TestPipelinesApiGroup_CreateVariableForEnvironment(t *testing.T) {
 		})
 	}
 }
+
+func TestPipelinesApiGroup_UpdateVariableForEnvironment(t *testing.T) {
+	currentTime := time.Now()
+	formattedTime := currentTime.Format("060102_1504")
+
+	type args struct {
+		workspace       string
+		repoSlug        string
+		environmentUuid string
+		create          Variable
+		update          Variable
+	}
+	type basicAuth struct {
+		username string
+		password string
+	}
+	type want struct {
+		type_   string
+		key     string
+		value   string
+		secured bool
+	}
+	tests := []struct {
+		name    string
+		auth    basicAuth
+		args    args
+		want    want
+		wantErr bool
+	}{
+		{
+			name: "correct variable insecure edit value",
+			auth: basicAuth{
+				username: os.Getenv("BITBUCKET_USERNAME"),
+				password: os.Getenv("BITBUCKET_APP_PASSWORD"),
+			},
+			args: args{
+				workspace:       os.Getenv("BITBUCKET_WORKSPACE_SLUG"),
+				repoSlug:        os.Getenv("BITBUCKET_REPO_SLUG"),
+				environmentUuid: os.Getenv("BITBUCKET_ENVIRONMENT_UUID_UPDATE_VARIABLES"),
+				create: Variable{
+					Key:     fmt.Sprintf("variable_1_key_%s", formattedTime),
+					Value:   "variable_1_value",
+					Secured: false,
+				},
+				update: Variable{
+					Key:     fmt.Sprintf("variable_1_key_%s", formattedTime),
+					Value:   "variable_1_value_updated",
+					Secured: false,
+				},
+			},
+			want: want{
+				key:     fmt.Sprintf("variable_1_key_%s", formattedTime),
+				value:   "variable_1_value_updated",
+				secured: false,
+			},
+			wantErr: false,
+		},
+		{
+			name: "correct variable insecure edit key",
+			auth: basicAuth{
+				username: os.Getenv("BITBUCKET_USERNAME"),
+				password: os.Getenv("BITBUCKET_APP_PASSWORD"),
+			},
+			args: args{
+				workspace:       os.Getenv("BITBUCKET_WORKSPACE_SLUG"),
+				repoSlug:        os.Getenv("BITBUCKET_REPO_SLUG"),
+				environmentUuid: os.Getenv("BITBUCKET_ENVIRONMENT_UUID_UPDATE_VARIABLES"),
+				create: Variable{
+					Key:     fmt.Sprintf("variable_2_key_%s", formattedTime),
+					Value:   "variable_2_value",
+					Secured: false,
+				},
+				update: Variable{
+					Key:     fmt.Sprintf("variable_2_key_%s_updated", formattedTime),
+					Value:   "variable_2_value",
+					Secured: false,
+				},
+			},
+			want: want{
+				key:     fmt.Sprintf("variable_2_key_%s_updated", formattedTime),
+				value:   "variable_2_value",
+				secured: false,
+			},
+			wantErr: false,
+		},
+		{
+			name: "correct variable secure edit value",
+			auth: basicAuth{
+				username: os.Getenv("BITBUCKET_USERNAME"),
+				password: os.Getenv("BITBUCKET_APP_PASSWORD"),
+			},
+			args: args{
+				workspace:       os.Getenv("BITBUCKET_WORKSPACE_SLUG"),
+				repoSlug:        os.Getenv("BITBUCKET_REPO_SLUG"),
+				environmentUuid: os.Getenv("BITBUCKET_ENVIRONMENT_UUID_UPDATE_VARIABLES"),
+				create: Variable{
+					Key:     fmt.Sprintf("variable_3_key_%s", formattedTime),
+					Value:   "variable_3_value",
+					Secured: true,
+				},
+				update: Variable{
+					Key:     fmt.Sprintf("variable_3_key_%s", formattedTime),
+					Value:   "variable_3_value_updated",
+					Secured: true,
+				},
+			},
+			want: want{
+				key:     fmt.Sprintf("variable_3_key_%s", formattedTime),
+				value:   "",
+				secured: true,
+			},
+			wantErr: false,
+		},
+		{
+			name: "correct variable secure edit key",
+			auth: basicAuth{
+				username: os.Getenv("BITBUCKET_USERNAME"),
+				password: os.Getenv("BITBUCKET_APP_PASSWORD"),
+			},
+			args: args{
+				workspace:       os.Getenv("BITBUCKET_WORKSPACE_SLUG"),
+				repoSlug:        os.Getenv("BITBUCKET_REPO_SLUG"),
+				environmentUuid: os.Getenv("BITBUCKET_ENVIRONMENT_UUID_UPDATE_VARIABLES"),
+				create: Variable{
+					Key:     fmt.Sprintf("variable_4_key_%s", formattedTime),
+					Value:   "variable_4_value",
+					Secured: true,
+				},
+				update: Variable{
+					Key:     fmt.Sprintf("variable_4_key_%s_updated", formattedTime),
+					Value:   "variable_4_value",
+					Secured: true,
+				},
+			},
+			want: want{
+				key:     fmt.Sprintf("variable_4_key_%s_updated", formattedTime),
+				value:   "",
+				secured: true,
+			},
+			wantErr: false,
+		},
+		{
+			name: "correct variable insecure edit value to secure",
+			auth: basicAuth{
+				username: os.Getenv("BITBUCKET_USERNAME"),
+				password: os.Getenv("BITBUCKET_APP_PASSWORD"),
+			},
+			args: args{
+				workspace:       os.Getenv("BITBUCKET_WORKSPACE_SLUG"),
+				repoSlug:        os.Getenv("BITBUCKET_REPO_SLUG"),
+				environmentUuid: os.Getenv("BITBUCKET_ENVIRONMENT_UUID_UPDATE_VARIABLES"),
+				create: Variable{
+					Key:     fmt.Sprintf("variable_5_key_%s", formattedTime),
+					Value:   "variable_5_value",
+					Secured: false,
+				},
+				update: Variable{
+					Key:     fmt.Sprintf("variable_5_key_%s", formattedTime),
+					Value:   "variable_5_value",
+					Secured: true,
+				},
+			},
+			want: want{
+				key:     fmt.Sprintf("variable_5_key_%s", formattedTime),
+				value:   "",
+				secured: true,
+			},
+			wantErr: false,
+		},
+		{
+			name: "correct variable secure edit value to insecure",
+			auth: basicAuth{
+				username: os.Getenv("BITBUCKET_USERNAME"),
+				password: os.Getenv("BITBUCKET_APP_PASSWORD"),
+			},
+			args: args{
+				workspace:       os.Getenv("BITBUCKET_WORKSPACE_SLUG"),
+				repoSlug:        os.Getenv("BITBUCKET_REPO_SLUG"),
+				environmentUuid: os.Getenv("BITBUCKET_ENVIRONMENT_UUID_UPDATE_VARIABLES"),
+				create: Variable{
+					Key:     fmt.Sprintf("variable_6_key_%s", formattedTime),
+					Value:   "variable_6_value",
+					Secured: true,
+				},
+				update: Variable{
+					Key:     fmt.Sprintf("variable_6_key_%s", formattedTime),
+					Value:   "variable_6_value", //TODO that in fact should be omitted to really test behaviour of BitBucket
+					Secured: false,
+				},
+			},
+			want: want{
+				key:     fmt.Sprintf("variable_6_key_%s", formattedTime),
+				value:   "variable_6_value",
+				secured: false,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c := NewClientWithBasicAuth(tt.auth.username, tt.auth.password)
+			c.Debug = true
+
+			gt, err := c.Pipelines.CreateVariableForEnvironment(tt.args.workspace, tt.args.repoSlug, tt.args.environmentUuid, tt.args.create)
+			assert.NoError(t, err)
+			assert.NotEmpty(t, gt.Uuid)
+			g, err := c.Pipelines.UpdateVariableForEnvironment(tt.args.workspace, tt.args.repoSlug, tt.args.environmentUuid, gt.Uuid, tt.args.update)
+			if tt.wantErr {
+				assert.Error(t, err)
+				return
+			}
+			assert.NoError(t, err)
+			spew.Dump(g)
+			got := want{
+				key:     g.Key,
+				secured: g.Secured,
+				value:   g.Value,
+			}
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
