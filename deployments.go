@@ -24,9 +24,9 @@ type EnvironmentType struct {
 
 type Environment struct {
 	Object
-	Uuid            string          `json:"uuid"`
+	Uuid            string          `json:"uuid,omitempty"`
 	Name            string          `json:"name"`
-	Slug            string          `json:"slug"`
+	Slug            string          `json:"slug,omitempty"`
 	EnvironmentType EnvironmentType `json:"environment_type"`
 }
 
@@ -91,4 +91,16 @@ func (d *DeploymentsApiGroup) GetEnvironment(workspace, repoSlug, environmentUui
 	var environment Environment
 	err := d.c.execute(&o, &environment)
 	return &environment, err
+}
+
+func (d *DeploymentsApiGroup) CreateEnvironment(workspace, repoSlug string, environment Environment) (*Environment, error) {
+	o := RequestOptions{
+		Method: "POST",
+		Path:   d.c.requestPath("/repositories/%s/%s/environments", workspace, repoSlug),
+		Data:   environment,
+	}
+	var createdEnvironment Environment
+
+	err := d.c.execute(&o, &createdEnvironment)
+	return &createdEnvironment, err
 }

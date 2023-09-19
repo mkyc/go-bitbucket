@@ -80,10 +80,10 @@ func (p *PipelinesApiGroup) CreateVariableForEnvironment(workspace, repoSlug, en
 		Path:   p.c.requestPath("/repositories/%s/%s/deployments_config/environments/%s/variables", workspace, repoSlug, environmentUuid),
 		Data:   variable,
 	}
-	var result Variable
+	var createdVariable Variable
 
-	err := p.c.execute(&o, &result)
-	return &result, err
+	err := p.c.execute(&o, &createdVariable)
+	return &createdVariable, err
 }
 
 func (p *PipelinesApiGroup) UpdateVariableForEnvironment(workspace, repoSlug, environmentUuid, variableUuid string, variable Variable) (*Variable, error) {

@@ -89,8 +89,11 @@ func (c *Client) do(req *http.Request) ([]byte, error) {
 		return nil, err
 	}
 
-	if resp.StatusCode == http.StatusNotFound {
+	switch resp.StatusCode {
+	case http.StatusNotFound:
 		return nil, errorNotFound
+	case http.StatusBadRequest:
+		return nil, errorBadRequest
 	}
 	return io.ReadAll(resp.Body)
 }

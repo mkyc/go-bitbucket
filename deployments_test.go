@@ -1,10 +1,12 @@
 package bitbucket
 
 import (
+	"fmt"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
+	"time"
 )
 
 func TestDeploymentsApiGroup_GetEnvironment(t *testing.T) {
@@ -18,8 +20,11 @@ func TestDeploymentsApiGroup_GetEnvironment(t *testing.T) {
 		password string
 	}
 	type want struct {
-		type_ string
-		name  string
+		type_               string
+		name                string
+		slug                string
+		environmentTypeName EnvironmentTypeName
+		environmentTypeRank EnvironmentTypeRank
 	}
 	tests := []struct {
 		name    string
@@ -40,8 +45,11 @@ func TestDeploymentsApiGroup_GetEnvironment(t *testing.T) {
 				environmentUuid: os.Getenv("BITBUCKET_ENVIRONMENT_UUID"),
 			},
 			want: want{
-				type_: "deployment_environment",
-				name:  os.Getenv("BITBUCKET_ENVIRONMENT_NAME"),
+				type_:               "deployment_environment",
+				name:                os.Getenv("BITBUCKET_ENVIRONMENT_NAME"),
+				slug:                os.Getenv("BITBUCKET_ENVIRONMENT_NAME"),
+				environmentTypeName: EnvironmentTypeTest,
+				environmentTypeRank: EnvironmentTypeRankTest,
 			},
 			wantErr: false,
 		},
@@ -88,8 +96,11 @@ func TestDeploymentsApiGroup_GetEnvironment(t *testing.T) {
 			assert.NoError(t, err)
 			spew.Dump(g)
 			got := want{
-				type_: g.Type,
-				name:  g.Name,
+				type_:               g.Type,
+				name:                g.Name,
+				slug:                g.Slug,
+				environmentTypeName: g.EnvironmentType.Name,
+				environmentTypeRank: g.EnvironmentType.Rank,
 			}
 			assert.Equal(t, tt.want, got)
 		})
@@ -207,6 +218,7 @@ func TestDeploymentsApiGroup_ListEnvironments(t *testing.T) {
 			want:    want{},
 			wantErr: true,
 		},
+		// TODO: add test for repository with no environments
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -241,6 +253,125 @@ func TestDeploymentsApiGroup_ListEnvironments(t *testing.T) {
 				assert.Contains(t, got.environments, w)
 			}
 			//assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestDeploymentsApiGroup_CreateEnvironment(t *testing.T) {
+	currentTime := time.Now()
+	formattedTime := currentTime.Format("060102_1504")
+
+	type args struct {
+		workspace   string
+		repoSlug    string
+		environment Environment
+	}
+	type basicAuth struct {
+		username string
+		password string
+	}
+	type want struct {
+		type_               string
+		name                string
+		slug                string
+		environmentTypeName EnvironmentTypeName
+		environmentTypeRank EnvironmentTypeRank
+	}
+	tests := []struct {
+		name    string
+		auth    basicAuth
+		args    args
+		want    want
+		wantErr bool
+	}{
+		{
+			name: "correct environment",
+			auth: basicAuth{
+				username: os.Getenv("BITBUCKET_USERNAME"),
+				password: os.Getenv("BITBUCKET_APP_PASSWORD"),
+			},
+			args: args{
+				workspace: os.Getenv("BITBUCKET_WORKSPACE_SLUG"),
+				repoSlug:  os.Getenv("BITBUCKET_REPO_SLUG"),
+				environment: Environment{
+					Name: fmt.Sprintf("create-test-%s", formattedTime),
+					EnvironmentType: EnvironmentType{
+						Name: EnvironmentTypeTest,
+						Rank: EnvironmentTypeRankTest,
+					},
+				},
+			},
+			want: want{
+				type_:               "deployment_environment",
+				name:                fmt.Sprintf("create-test-%s", formattedTime),
+				slug:                fmt.Sprintf("create-test-%s", formattedTime),
+				environmentTypeName: EnvironmentTypeTest,
+				environmentTypeRank: EnvironmentTypeRankTest,
+			},
+			wantErr: false,
+		},
+		{
+			name: "incorrect credentials",
+			auth: basicAuth{
+				username: "incorrect",
+				password: "incorrect",
+			},
+			args: args{
+				workspace: os.Getenv("BITBUCKET_WORKSPACE_SLUG"),
+				repoSlug:  os.Getenv("BITBUCKET_REPO_SLUG"),
+				environment: Environment{
+					Name: fmt.Sprintf("create-test-%s", formattedTime),
+					EnvironmentType: EnvironmentType{
+						Name: EnvironmentTypeTest,
+						Rank: EnvironmentTypeRankTest,
+					},
+				},
+			},
+			want:    want{},
+			wantErr: true,
+		},
+		{
+			name: "incorrect environment type",
+			auth: basicAuth{
+				username: os.Getenv("BITBUCKET_USERNAME"),
+				password: os.Getenv("BITBUCKET_APP_PASSWORD"),
+			},
+			args: args{
+				workspace: os.Getenv("BITBUCKET_WORKSPACE_SLUG"),
+				repoSlug:  os.Getenv("BITBUCKET_REPO_SLUG"),
+				environment: Environment{
+					Name: fmt.Sprintf("create-test-%s", formattedTime),
+					EnvironmentType: EnvironmentType{
+						Name: "incorrect",
+						Rank: EnvironmentTypeRankTest,
+					},
+				},
+			},
+			want:    want{},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c := NewClientWithBasicAuth(tt.auth.username, tt.auth.password)
+			c.Debug = true
+
+			g, err := c.Deployments.CreateEnvironment(tt.args.workspace, tt.args.repoSlug, tt.args.environment)
+			if tt.wantErr {
+				assert.Error(t, err)
+				return
+			}
+			assert.NoError(t, err)
+			spew.Dump(g)
+			got := want{
+				type_:               g.Type,
+				name:                g.Name,
+				slug:                g.Slug,
+				environmentTypeName: g.EnvironmentType.Name,
+				environmentTypeRank: g.EnvironmentType.Rank,
+			}
+			assert.Equal(t, tt.want, got)
+			assert.NotEmpty(t, g.Uuid)
 		})
 	}
 }
