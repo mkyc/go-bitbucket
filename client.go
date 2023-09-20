@@ -28,11 +28,13 @@ type Client struct {
 	apiBaseURL *url.URL
 	HttpClient *http.Client
 
-	User        userApiGroup
-	Workspaces  workspacesApiGroup
-	Deployments deploymentsApiGroup
-	Pipelines   pipelinesApiGroup
-	Debug       bool
+	User         userApiGroup
+	Workspaces   workspacesApiGroup
+	Deployments  deploymentsApiGroup
+	Pipelines    pipelinesApiGroup
+	Repositories repositoriesApiGroup
+
+	Debug bool
 }
 
 type auth struct {
@@ -182,6 +184,7 @@ func newClient(a *auth) *Client {
 	c.Workspaces = &WorkspacesApiGroup{c: c}
 	c.Deployments = &DeploymentsApiGroup{c: c}
 	c.Pipelines = &PipelinesApiGroup{c: c}
+	c.Repositories = &RepositoriesApiGroup{c: c}
 
 	c.HttpClient = &http.Client{
 		Timeout: 5 * time.Second,

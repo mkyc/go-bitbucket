@@ -252,7 +252,6 @@ func TestDeploymentsApiGroup_ListEnvironments(t *testing.T) {
 			for _, w := range tt.want.environments {
 				assert.Contains(t, got.environments, w)
 			}
-			//assert.Equal(t, tt.want, got)
 		})
 	}
 }

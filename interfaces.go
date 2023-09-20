@@ -8,6 +8,12 @@ type workspacesApiGroup interface {
 	GetWorkspace(name string) (*Workspace, error)
 }
 
+type repositoriesApiGroup interface {
+	// ListRepositoriesInWorkspace is described at:
+	// https://developer.atlassian.com/cloud/bitbucket/rest/api-group-repositories/#api-repositories-workspace-get
+	ListRepositoriesInWorkspace(workspace string) ([]Repository, error)
+}
+
 type deploymentsApiGroup interface {
 	// ListEnvironments is described at:
 	// https://developer.atlassian.com/cloud/bitbucket/rest/api-group-deployments/#api-repositories-workspace-repo-slug-environments-get
