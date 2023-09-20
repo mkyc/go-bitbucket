@@ -104,3 +104,11 @@ func (d *DeploymentsApiGroup) CreateEnvironment(workspace, repoSlug string, envi
 	err := d.c.execute(&o, &createdEnvironment)
 	return &createdEnvironment, err
 }
+
+func (d *DeploymentsApiGroup) DeleteEnvironment(workspace, repoSlug, environmentUuid string) error {
+	o := RequestOptions{
+		Method: "DELETE",
+		Path:   d.c.requestPath("/repositories/%s/%s/environments/%s", workspace, repoSlug, environmentUuid),
+	}
+	return d.c.execute(&o, nil)
+}

@@ -375,3 +375,94 @@ func TestDeploymentsApiGroup_CreateEnvironment(t *testing.T) {
 		})
 	}
 }
+
+func TestDeploymentsApiGroup_DeleteEnvironment(t *testing.T) {
+	currentTime := time.Now()
+	formattedTime := currentTime.Format("060102_1504")
+
+	type args struct {
+		workspace string
+		repoSlug  string
+	}
+	type basicAuth struct {
+		username string
+		password string
+	}
+	tests := []struct {
+		name    string
+		auth    basicAuth
+		args    args
+		create  bool
+		wantErr bool
+	}{
+		{
+			name: "correct environment",
+			auth: basicAuth{
+				username: os.Getenv("BITBUCKET_USERNAME"),
+				password: os.Getenv("BITBUCKET_APP_PASSWORD"),
+			},
+			args: args{
+				workspace: os.Getenv("BITBUCKET_WORKSPACE_SLUG"),
+				repoSlug:  os.Getenv("BITBUCKET_REPO_SLUG"),
+			},
+			create:  true,
+			wantErr: false,
+		},
+		{
+			name: "incorrect credentials",
+			auth: basicAuth{
+				username: "incorrect",
+				password: "incorrect",
+			},
+			args: args{
+				workspace: os.Getenv("BITBUCKET_WORKSPACE_SLUG"),
+				repoSlug:  os.Getenv("BITBUCKET_REPO_SLUG"),
+			},
+			create:  false,
+			wantErr: true,
+		},
+		{
+			name: "not existing environment",
+			auth: basicAuth{
+				username: os.Getenv("BITBUCKET_USERNAME"),
+				password: os.Getenv("BITBUCKET_APP_PASSWORD"),
+			},
+			args: args{
+				workspace: os.Getenv("BITBUCKET_WORKSPACE_SLUG"),
+				repoSlug:  os.Getenv("BITBUCKET_REPO_SLUG"),
+			},
+			create:  false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c := NewClientWithBasicAuth(tt.auth.username, tt.auth.password)
+			c.Debug = true
+
+			environmentUuid := ""
+			if tt.create {
+				environment := Environment{
+					Name: fmt.Sprintf("delete-test-%s", formattedTime),
+					EnvironmentType: EnvironmentType{
+						Name: EnvironmentTypeTest,
+						Rank: EnvironmentTypeRankTest,
+					},
+				}
+				g, err := c.Deployments.CreateEnvironment(tt.args.workspace, tt.args.repoSlug, environment)
+				assert.NoError(t, err)
+				spew.Dump(g)
+				environmentUuid = g.Uuid
+			} else {
+				environmentUuid = "{73868aea-d679-4588-a7e1-5dcc7b4ecebc}" //this is random uuid
+			}
+
+			err := c.Deployments.DeleteEnvironment(tt.args.workspace, tt.args.repoSlug, environmentUuid)
+			if tt.wantErr {
+				assert.Error(t, err)
+				return
+			}
+			assert.NoError(t, err)
+		})
+	}
+}

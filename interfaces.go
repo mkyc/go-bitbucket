@@ -18,6 +18,9 @@ type deploymentsApiGroup interface {
 	// CreateEnvironment is described at:
 	// https://developer.atlassian.com/cloud/bitbucket/rest/api-group-deployments/#api-repositories-workspace-repo-slug-environments-post
 	CreateEnvironment(workspace, repoSlug string, environment Environment) (*Environment, error)
+	// DeleteEnvironment is described at:
+	// https://developer.atlassian.com/cloud/bitbucket/rest/api-group-deployments/#api-repositories-workspace-repo-slug-environments-environment-uuid-delete
+	DeleteEnvironment(workspace, repoSlug, environmentUuid string) error
 }
 
 type pipelinesApiGroup interface {

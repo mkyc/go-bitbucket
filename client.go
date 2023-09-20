@@ -94,6 +94,12 @@ func (c *Client) do(req *http.Request) ([]byte, error) {
 		return nil, errorNotFound
 	case http.StatusBadRequest:
 		return nil, errorBadRequest
+	case http.StatusUnauthorized:
+		return nil, errorUnauthorized
+	case http.StatusOK, // correct status for GET requests
+		http.StatusCreated,   // correct status for POST requests
+		http.StatusNoContent: // correct status for DELETE requests
+		return io.ReadAll(resp.Body)
 	}
 	return io.ReadAll(resp.Body)
 }
@@ -145,6 +151,9 @@ func (c *Client) execute(o *RequestOptions, target interface{}) error {
 		c.logPrettyBody(bodyBytes)
 	}
 
+	if len(bodyBytes) == 0 {
+		return nil
+	}
 	return json.Unmarshal(bodyBytes, target)
 }
 
