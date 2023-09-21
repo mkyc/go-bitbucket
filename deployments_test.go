@@ -293,7 +293,7 @@ func TestDeploymentsApiGroup_CreateEnvironment(t *testing.T) {
 				workspace: os.Getenv("BITBUCKET_WORKSPACE_SLUG"),
 				repoSlug:  os.Getenv("BITBUCKET_REPO_SLUG"),
 				environment: Environment{
-					Name: fmt.Sprintf("create-test-%s", formattedTime),
+					Name: fmt.Sprintf("create-test-1-%s", formattedTime),
 					EnvironmentType: EnvironmentType{
 						Name: EnvironmentTypeTest,
 						Rank: EnvironmentTypeRankTest,
@@ -302,10 +302,35 @@ func TestDeploymentsApiGroup_CreateEnvironment(t *testing.T) {
 			},
 			want: want{
 				type_:               "deployment_environment",
-				name:                fmt.Sprintf("create-test-%s", formattedTime),
-				slug:                fmt.Sprintf("create-test-%s", formattedTime),
+				name:                fmt.Sprintf("create-test-1-%s", formattedTime),
+				slug:                fmt.Sprintf("create-test-1-%s", formattedTime),
 				environmentTypeName: EnvironmentTypeTest,
 				environmentTypeRank: EnvironmentTypeRankTest,
+			},
+			wantErr: false,
+		},
+		{
+			name: "just environment type name",
+			auth: basicAuth{
+				username: os.Getenv("BITBUCKET_USERNAME"),
+				password: os.Getenv("BITBUCKET_APP_PASSWORD"),
+			},
+			args: args{
+				workspace: os.Getenv("BITBUCKET_WORKSPACE_SLUG"),
+				repoSlug:  os.Getenv("BITBUCKET_REPO_SLUG"),
+				environment: Environment{
+					Name: fmt.Sprintf("create-test-2-%s", formattedTime),
+					EnvironmentType: EnvironmentType{
+						Name: EnvironmentTypeStaging,
+					},
+				},
+			},
+			want: want{
+				type_:               "deployment_environment",
+				name:                fmt.Sprintf("create-test-2-%s", formattedTime),
+				slug:                fmt.Sprintf("create-test-2-%s", formattedTime),
+				environmentTypeName: EnvironmentTypeStaging,
+				environmentTypeRank: EnvironmentTypeRankStaging,
 			},
 			wantErr: false,
 		},

@@ -94,6 +94,7 @@ func (d *DeploymentsApiGroup) GetEnvironment(workspace, repoSlug, environmentUui
 }
 
 func (d *DeploymentsApiGroup) CreateEnvironment(workspace, repoSlug string, environment Environment) (*Environment, error) {
+	environment.EnvironmentType.Type = "deployment_environment_type"
 	o := RequestOptions{
 		Method: "POST",
 		Path:   d.c.requestPath("/repositories/%s/%s/environments", workspace, repoSlug),

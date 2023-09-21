@@ -91,13 +91,17 @@ func (c *Client) do(req *http.Request) ([]byte, error) {
 		return nil, err
 	}
 
-	switch resp.StatusCode {
+	switch resp.StatusCode { //TODO add more messages from body of response
 	case http.StatusNotFound:
 		return nil, errorNotFound
 	case http.StatusBadRequest:
 		return nil, errorBadRequest
 	case http.StatusUnauthorized:
 		return nil, errorUnauthorized
+	case http.StatusForbidden:
+		return nil, errorForbidden
+	case http.StatusConflict: // error status for POST with the already taken name
+		return nil, errorConflict
 	case http.StatusOK, // correct status for GET requests
 		http.StatusCreated,   // correct status for POST requests
 		http.StatusNoContent: // correct status for DELETE requests
