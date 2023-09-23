@@ -1,5 +1,10 @@
 package bitbucket
 
+type PipelinesConfiguration struct {
+	Object
+	Enabled bool `json:"enabled"`
+}
+
 type Variable struct {
 	Object
 	Uuid    string `json:"uuid,omitempty"`
@@ -47,7 +52,6 @@ func (p *PipelinesApiGroup) ListVariablesForEnvironment(workspace, repoSlug, env
 		HasNextPage: true,
 		CurrentPage: 1,
 	}
-
 	var pages []VariablesPage
 	for o.HasNextPage {
 		var page VariablesPage
@@ -56,21 +60,17 @@ func (p *PipelinesApiGroup) ListVariablesForEnvironment(workspace, repoSlug, env
 			return nil, err
 		}
 		pages = append(pages, page)
-
 		if o.CurrentPage*p.c.pagination.PageLength >= page.GetSize() {
 			o.HasNextPage = false
 		}
 		o.CurrentPage++
 	}
-
 	var variables []Variable
-
 	for _, page := range pages {
 		for _, v := range page.Values {
 			variables = append(variables, v)
 		}
 	}
-
 	return variables, nil
 }
 
@@ -81,7 +81,6 @@ func (p *PipelinesApiGroup) CreateVariableForEnvironment(workspace, repoSlug, en
 		Data:   variable,
 	}
 	var createdVariable Variable
-
 	err := p.c.execute(&o, &createdVariable)
 	return &createdVariable, err
 }
@@ -93,7 +92,27 @@ func (p *PipelinesApiGroup) UpdateVariableForEnvironment(workspace, repoSlug, en
 		Data:   variable,
 	}
 	var result Variable
+	err := p.c.execute(&o, &result)
+	return &result, err
+}
 
+func (p *PipelinesApiGroup) GetConfiguration(workspace, repoSlug string) (*PipelinesConfiguration, error) {
+	o := RequestOptions{
+		Method: "GET",
+		Path:   p.c.requestPath("/repositories/%s/%s/pipelines_config", workspace, repoSlug),
+	}
+	var configuration PipelinesConfiguration
+	err := p.c.execute(&o, &configuration)
+	return &configuration, err
+}
+
+func (p *PipelinesApiGroup) UpdateConfiguration(workspace, repoSlug string, configuration PipelinesConfiguration) (*PipelinesConfiguration, error) {
+	o := RequestOptions{
+		Method: "PUT",
+		Path:   p.c.requestPath("/repositories/%s/%s/pipelines_config", workspace, repoSlug),
+		Data:   configuration,
+	}
+	var result PipelinesConfiguration
 	err := p.c.execute(&o, &result)
 	return &result, err
 }

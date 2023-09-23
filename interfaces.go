@@ -42,4 +42,10 @@ type pipelinesApiGroup interface {
 	// UpdateVariableForEnvironment is described at:
 	// https://developer.atlassian.com/cloud/bitbucket/rest/api-group-pipelines/#api-repositories-workspace-repo-slug-deployments-config-environments-environment-uuid-variables-variable-uuid-put
 	UpdateVariableForEnvironment(workspace, repoSlug, environmentUuid, variableUuid string, variable Variable) (*Variable, error)
+	// GetConfiguration is described at:
+	// https://developer.atlassian.com/cloud/bitbucket/rest/api-group-pipelines/#api-repositories-workspace-repo-slug-pipelines-config-get
+	GetConfiguration(workspace, repoSlug string) (*PipelinesConfiguration, error)
+	// UpdateConfiguration is described at:
+	// https://developer.atlassian.com/cloud/bitbucket/rest/api-group-pipelines/#api-repositories-workspace-repo-slug-pipelines-config-put
+	UpdateConfiguration(workspace, repoSlug string, configuration PipelinesConfiguration) (*PipelinesConfiguration, error)
 }

@@ -634,3 +634,125 @@ func TestPipelinesApiGroup_UpdateVariableForEnvironment(t *testing.T) {
 		})
 	}
 }
+
+func TestPipelinesApiGroup_GetConfiguration(t *testing.T) {
+	type args struct {
+		workspace string
+		repoSlug  string
+	}
+	type basicAuth struct {
+		username string
+		password string
+	}
+	type want struct {
+		type_   string
+		enabled bool
+	}
+	tests := []struct {
+		name    string
+		auth    basicAuth
+		args    args
+		want    want
+		wantErr bool
+	}{
+		{
+			name: "correct configuration",
+			auth: basicAuth{
+				username: os.Getenv("BITBUCKET_USERNAME"),
+				password: os.Getenv("BITBUCKET_APP_PASSWORD"),
+			},
+			args: args{
+				workspace: os.Getenv("BITBUCKET_WORKSPACE_SLUG"),
+				repoSlug:  os.Getenv("BITBUCKET_REPO_SLUG"),
+			},
+			want: want{
+				type_:   "repository_pipelines_configuration",
+				enabled: true,
+			},
+			wantErr: false,
+		},
+		// TODO add more tests
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c := NewClientWithBasicAuth(tt.auth.username, tt.auth.password)
+			c.Debug = true
+
+			g, err := c.Pipelines.GetConfiguration(tt.args.workspace, tt.args.repoSlug)
+			if tt.wantErr {
+				assert.Error(t, err)
+				return
+			}
+			assert.NoError(t, err)
+			spew.Dump(g)
+			got := want{
+				type_:   g.Type,
+				enabled: g.Enabled,
+			}
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestPipelinesApiGroup_UpdateConfiguration(t *testing.T) {
+	type args struct {
+		workspace string
+		repoSlug  string
+		update    PipelinesConfiguration
+	}
+	type basicAuth struct {
+		username string
+		password string
+	}
+	type want struct {
+		type_   string
+		enabled bool
+	}
+	tests := []struct {
+		name    string
+		auth    basicAuth
+		args    args
+		want    want
+		wantErr bool
+	}{
+		{
+			name: "correct configuration",
+			auth: basicAuth{
+				username: os.Getenv("BITBUCKET_USERNAME"),
+				password: os.Getenv("BITBUCKET_APP_PASSWORD"),
+			},
+			args: args{
+				workspace: os.Getenv("BITBUCKET_WORKSPACE_SLUG"),
+				repoSlug:  os.Getenv("BITBUCKET_REPO_SLUG"),
+				update: PipelinesConfiguration{
+					Enabled: true,
+				},
+			},
+			want: want{
+				type_:   "repository_pipelines_configuration",
+				enabled: true,
+			},
+			wantErr: false,
+		},
+		// TODO add more tests
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c := NewClientWithBasicAuth(tt.auth.username, tt.auth.password)
+			c.Debug = true
+
+			g, err := c.Pipelines.UpdateConfiguration(tt.args.workspace, tt.args.repoSlug, tt.args.update)
+			if tt.wantErr {
+				assert.Error(t, err)
+				return
+			}
+			assert.NoError(t, err)
+			spew.Dump(g)
+			got := want{
+				type_:   g.Type,
+				enabled: g.Enabled,
+			}
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
