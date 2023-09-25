@@ -63,9 +63,9 @@ func (c *Client) newRequest(o *RequestOptions) (*http.Request, error) {
 	}
 	c.addDefaultHeaders(req)
 	c.authenticateRequest(req)
-	c.addDefaultParams(req)
 	c.addBody(req, o)
 	if o.IsPageable {
+		c.addDefaultParams(req)
 		q := req.URL.Query()
 		q.Set("page", strconv.Itoa(o.CurrentPage))
 		req.URL.RawQuery = q.Encode()
