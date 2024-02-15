@@ -2,13 +2,20 @@ package bitbucket
 
 import "fmt"
 
+type Project struct {
+	Object
+	Key  string `json:"key"`
+	Uuid string `json:"uuid"`
+}
+
 type Repository struct {
 	Object
-	Uuid      string `json:"uuid"`
-	Slug      string `json:"slug"`
-	FullName  string `json:"full_name"`
-	Name      string `json:"name"`
-	IsPrivate bool   `json:"is_private"`
+	Uuid      string  `json:"uuid"`
+	Slug      string  `json:"slug"`
+	FullName  string  `json:"full_name"`
+	Name      string  `json:"name"`
+	IsPrivate bool    `json:"is_private"`
+	Project   Project `json:"project"`
 }
 
 type RepositoriesPage struct {
