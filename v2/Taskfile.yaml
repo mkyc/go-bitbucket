@@ -1,0 +1,12 @@
+version: 3
+tasks:
+  codegen:
+    dir: .
+    vars:
+      API_VERSION: "2.300.27-0.1303.0"
+      CODEGEN_VERSION: "3.0.54"
+      URL: "https://dac-static.atlassian.com/cloud/bitbucket/swagger.v3.json"
+    cmds:
+      - curl -o swagger.v3.json {{.URL}}?_v={{.API_VERSION}}
+      - |
+        docker run --rm -v ${PWD}:/local swaggerapi/swagger-codegen-cli-v3:{{.CODEGEN_VERSION}} generate -i /local/swagger.v3.json -l go -o /local -DpackageName=bitbucket
