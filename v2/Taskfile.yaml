@@ -1,0 +1,10 @@
+version: 3
+tasks:
+  codegen:
+    dir: .
+    vars:
+      API_VERSION: "2.300.27-0.1303.0"
+      URL: "https://dac-static.atlassian.com/cloud/bitbucket/swagger.v3.json"
+    cmds:
+      - curl -o swagger.v3.json {{.URL}}?_v={{.API_VERSION}}
+      - oapi-codegen -package bitbucket -generate types,client swagger.v3.json > bitbucket.gen.go
