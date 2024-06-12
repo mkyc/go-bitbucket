@@ -3,8 +3,8 @@ module github.com/mkyc/go-bitbucket/v2
 go 1.22.0
 
 require (
-	github.com/deepmap/oapi-codegen v1.16.2
 	github.com/labstack/gommon v0.4.2
+	github.com/oapi-codegen/oapi-codegen/v2 v2.3.0
 	github.com/oapi-codegen/runtime v1.1.1
 )
 

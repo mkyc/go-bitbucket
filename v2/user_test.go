@@ -8,7 +8,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/deepmap/oapi-codegen/pkg/securityprovider"
+	"github.com/oapi-codegen/oapi-codegen/v2/pkg/securityprovider"
 )
 
 //type testLoggingTransport struct{}
@@ -105,4 +105,49 @@ func TestGetRepositories(t *testing.T) {
 		}
 	}
 	log.Info(len(repos))
+}
+
+func TestUpdateRepositoryDescription(t *testing.T) {
+	username := os.Getenv("BITBUCKET_USERNAME")
+	password := os.Getenv("BITBUCKET_APP_PASSWORD")
+	workspace := os.Getenv("BITBUCKET_WORKSPACE_SLUG")
+	repoSlug := os.Getenv("BITBUCKET_REPO_SLUG")
+
+	basicAuthProvider, basicAuthProviderErr := securityprovider.NewSecurityProviderBasicAuth(username, password)
+	if basicAuthProviderErr != nil {
+		panic(basicAuthProviderErr)
+	}
+
+	c, err := NewClientWithResponses(
+		"https://api.bitbucket.org/2.0",
+		WithRequestEditorFn(basicAuthProvider.Intercept),
+	)
+	if err != nil {
+		t.Error(err)
+	}
+
+	pr, err := c.GetRepositoriesWorkspaceRepoSlugWithResponse(context.Background(), workspace, repoSlug)
+	if err != nil {
+		t.Error(err)
+	}
+
+	t.Logf("Repo Description: %s", *pr.JSON200.Description)
+
+	var request PutRepositoriesWorkspaceRepoSlugJSONRequestBody
+	request = *pr.JSON200
+	newDescription := "This is a test description"
+	request.Description = &newDescription
+
+	ur, err := c.PutRepositoriesWorkspaceRepoSlug(
+		context.Background(),
+		workspace,
+		repoSlug,
+		request,
+	)
+	if err != nil {
+		t.Error(err)
+	}
+	if ur.StatusCode == http.StatusOK {
+		t.Logf("Status: %d", ur.StatusCode)
+	}
 }
