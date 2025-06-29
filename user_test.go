@@ -1,4 +1,4 @@
-package go_bitbucket
+package bitbucket
 
 import (
 	"context"
