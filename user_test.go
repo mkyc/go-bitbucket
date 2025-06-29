@@ -1,72 +1,153 @@
 package bitbucket
 
 import (
-	"github.com/davecgh/go-spew/spew"
-	"github.com/stretchr/testify/assert"
+	"context"
+	"fmt"
+	"github.com/labstack/gommon/log"
+	"net/http"
 	"os"
 	"testing"
+
+	"github.com/oapi-codegen/oapi-codegen/v2/pkg/securityprovider"
 )
 
-func TestUserApiGroup_GetCurrentUser(t *testing.T) {
-	type basicAuth struct {
-		username string
-		password string
+//type testLoggingTransport struct{}
+//
+//func (s *testLoggingTransport) RoundTrip(r *http.Request) (*http.Response, error) {
+//	bytes, _ := httputil.DumpRequestOut(r, true)
+//
+//	resp, err := http.DefaultTransport.RoundTrip(r)
+//	// err is returned after dumping the response
+//
+//	respBytes, _ := httputil.DumpResponse(resp, true)
+//	bytes = append(bytes, respBytes...)
+//
+//	fmt.Printf("%s\n", bytes)
+//
+//	return resp, err
+//}
+
+func TestGetUser(t *testing.T) {
+	username := os.Getenv("BITBUCKET_USERNAME")
+	password := os.Getenv("BITBUCKET_APP_PASSWORD")
+	basicAuthProvider, basicAuthProviderErr := securityprovider.NewSecurityProviderBasicAuth(username, password)
+	if basicAuthProviderErr != nil {
+		panic(basicAuthProviderErr)
 	}
 
-	type want struct {
-		username    string
-		type_       string
-		displayName string
+	clientWithResponses, err := NewClientWithResponses("https://api.bitbucket.org/2.0", WithRequestEditorFn(basicAuthProvider.Intercept))
+	if err != nil {
+		t.Error(err)
+	}
+	pr, err := clientWithResponses.GetUserWithResponse(context.Background())
+	if err != nil {
+		t.Error(err)
 	}
 
-	tests := []struct {
-		name    string
-		auth    basicAuth
-		want    want
-		wantErr bool
-	}{
-		{
-			name: "correct user",
-			auth: basicAuth{
-				username: os.Getenv("BITBUCKET_USERNAME"),
-				password: os.Getenv("BITBUCKET_APP_PASSWORD"),
-			},
-			wantErr: false,
-			want: want{
-				username:    os.Getenv("BITBUCKET_USERNAME"),
-				type_:       "user",
-				displayName: os.Getenv("BITBUCKET_DISPLAY_NAME"),
-			},
-		},
-		{
-			name: "incorrect credentials",
-			auth: basicAuth{
-				username: "incorrect",
-				password: "incorrect",
-			},
-			want:    want{},
-			wantErr: true,
-		},
+	if pr.StatusCode() == http.StatusOK {
+		t.Logf("User: %+v", pr.JSON200)
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			c := NewClientWithBasicAuth(tt.auth.username, tt.auth.password)
 
-			c.Debug = true
+}
 
-			g, err := c.User.GetCurrentUser()
-			if tt.wantErr {
-				assert.Error(t, err)
-				return
-			}
-			assert.NoError(t, err)
-			spew.Dump(g)
-			got := want{
-				username:    g.Username,
-				type_:       g.Type,
-				displayName: g.DisplayName,
-			}
-			assert.Equal(t, tt.want, got)
-		})
+func TestGetRepositories(t *testing.T) {
+	username := os.Getenv("BITBUCKET_USERNAME")
+	password := os.Getenv("BITBUCKET_APP_PASSWORD")
+	workspace := os.Getenv("BITBUCKET_WORKSPACE_SLUG")
+
+	basicAuthProvider, basicAuthProviderErr := securityprovider.NewSecurityProviderBasicAuth(username, password)
+	if basicAuthProviderErr != nil {
+		panic(basicAuthProviderErr)
+	}
+
+	c, err := NewClientWithResponses(
+		"https://api.bitbucket.org/2.0",
+		WithRequestEditorFn(basicAuthProvider.Intercept),
+		//WithHTTPClient(
+		//	&http.Client{
+		//		Transport: &testLoggingTransport{},
+		//	},
+		//),
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	repos := make([]Repository, 0)
+	hasNext := true
+	page := 1
+	for hasNext {
+		// create context and add page parameter
+		ctx := context.WithValue(context.Background(), "page", page)
+		t.Logf("Page: %d", page)
+		pr, err := c.GetRepositoriesWorkspaceWithResponse(
+			ctx,
+			workspace,
+			nil,
+			func(ctx context.Context, req *http.Request) error {
+				page := ctx.Value("page").(int)
+				q := req.URL.Query()
+				q.Add("page", fmt.Sprintf("%d", page))
+				req.URL.RawQuery = q.Encode()
+				return nil
+			},
+		)
+		if err != nil {
+			t.Error(err)
+		}
+		if pr.StatusCode() == http.StatusOK {
+			repos = append(repos, *pr.JSON200.Values...)
+		}
+		if pr.JSON200.Next != nil && *pr.JSON200.Next != "" {
+			page++
+		} else {
+			hasNext = false
+		}
+	}
+	log.Info(len(repos))
+}
+
+func TestUpdateRepositoryDescription(t *testing.T) {
+	username := os.Getenv("BITBUCKET_USERNAME")
+	password := os.Getenv("BITBUCKET_APP_PASSWORD")
+	workspace := os.Getenv("BITBUCKET_WORKSPACE_SLUG")
+	repoSlug := os.Getenv("BITBUCKET_REPO_SLUG")
+
+	basicAuthProvider, basicAuthProviderErr := securityprovider.NewSecurityProviderBasicAuth(username, password)
+	if basicAuthProviderErr != nil {
+		panic(basicAuthProviderErr)
+	}
+
+	c, err := NewClientWithResponses(
+		"https://api.bitbucket.org/2.0",
+		WithRequestEditorFn(basicAuthProvider.Intercept),
+	)
+	if err != nil {
+		t.Error(err)
+	}
+
+	pr, err := c.GetRepositoriesWorkspaceRepoSlugWithResponse(context.Background(), workspace, repoSlug)
+	if err != nil {
+		t.Error(err)
+	}
+
+	t.Logf("Repo Description: %s", *pr.JSON200.Description)
+
+	var request PutRepositoriesWorkspaceRepoSlugJSONRequestBody
+	request = *pr.JSON200
+	newDescription := "This is a test description"
+	request.Description = &newDescription
+
+	ur, err := c.PutRepositoriesWorkspaceRepoSlug(
+		context.Background(),
+		workspace,
+		repoSlug,
+		request,
+	)
+	if err != nil {
+		t.Error(err)
+	}
+	if ur.StatusCode == http.StatusOK {
+		t.Logf("Status: %d", ur.StatusCode)
 	}
 }
