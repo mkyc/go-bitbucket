@@ -1,31 +1,10 @@
 version: 3
 tasks:
-  test:
+  codegen:
     dir: .
-    env:
-      BITBUCKET_APP_PASSWORD: "test"
-      BITBUCKET_DISPLAY_NAME: "test"
-      BITBUCKET_ENVIRONMENT_NAME: "test"
-      BITBUCKET_ENVIRONMENT_NAME_CREATE_VARIABLES: "test"
-      BITBUCKET_ENVIRONMENT_NAME_NO_VARIABLES: "test"
-      BITBUCKET_ENVIRONMENT_NAME_ONE_VARIABLE: "test"
-      BITBUCKET_ENVIRONMENT_NAME_PRODUCTION: "test"
-      BITBUCKET_ENVIRONMENT_NAME_STAGING: "test"
-      BITBUCKET_ENVIRONMENT_NAME_THREE_VARIABLES: "test"
-      BITBUCKET_ENVIRONMENT_NAME_UPDATE_VARIABLES: "test"
-      BITBUCKET_ENVIRONMENT_UUID: "test"
-      BITBUCKET_ENVIRONMENT_UUID_CREATE_VARIABLES: "test"
-      BITBUCKET_ENVIRONMENT_UUID_NO_VARIABLES: "test"
-      BITBUCKET_ENVIRONMENT_UUID_ONE_VARIABLE: "test"
-      BITBUCKET_ENVIRONMENT_UUID_THREE_VARIABLES: "test"
-      BITBUCKET_ENVIRONMENT_UUID_UPDATE_VARIABLES: "test"
-      BITBUCKET_REPO_SLUG: "test"
-      BITBUCKET_USERNAME: "test"
-      BITBUCKET_WORKSPACE_INSECURE_VARIABLE_KEY: "test"
-      BITBUCKET_WORKSPACE_INSECURE_VARIABLE_UUID: "test"
-      BITBUCKET_WORKSPACE_INSECURE_VARIABLE_VALUE: "test"
-      BITBUCKET_WORKSPACE_SECURE_VARIABLE_KEY: "test"
-      BITBUCKET_WORKSPACE_SECURE_VARIABLE_UUID: "test"
-      BITBUCKET_WORKSPACE_SLUG: "test"
+    vars:
+      API_VERSION: "2.300.110-0.1324.0"
+      URL: "https://dac-static.atlassian.com/cloud/bitbucket/swagger.v3.json"
     cmds:
-    - go test ./...
+      - curl -o swagger.v3.json {{.URL}}?_v={{.API_VERSION}}
+      - oapi-codegen -package bitbucket -generate types,client swagger.v3.json > bitbucket.gen.go
